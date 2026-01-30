@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Welcome to Dashboard</h1>
+    <p>You have successfully logged in.</p>
+    <p><a href="/auth/logout">Logout</a></p>
+</body>
+</html>
