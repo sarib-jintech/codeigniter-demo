@@ -14,6 +14,16 @@ class Auth extends BaseController
         return view('auth/index');
     }
 
+    public function tokenValidation(string $token): ?object
+    {
+        try {
+            $decoded = JWT::decode($token, new Key("muhammadsarib_super_secret_key_1234567890", 'HS256'));
+            return $decoded;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
     public function authenticate()
     {
         $data = $this->request->getJSON(true);
@@ -64,16 +74,15 @@ class Auth extends BaseController
     {
         $header = $this->request->getHeaderLine('Authorization');
         $token = str_replace('Bearer ', '', $header);
-
-        try {
-            $decoded = JWT::decode($token, new Key("muhammadsarib_super_secret_key_1234567890", 'HS256'));
+        $decoded = $this->tokenValidation($token);
+        if ($decoded) {
             $tokenModel = model(UserToken::class);
             $tokenModel->changeActiveToken($token);
             return $this->response->setJSON([
                 'status' => 'success',
                 'message' => 'Logged out'
             ]);
-        } catch (\Exception $e) {
+        } else {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Invalid token'
@@ -85,8 +94,8 @@ class Auth extends BaseController
         $header = $this->request->getHeaderLine('Authorization');
         $token = str_replace('Bearer ', '', $header);
 
-        try {
-            $decoded = JWT::decode($token, new Key("muhammadsarib_super_secret_key_1234567890", 'HS256'));
+        $decoded = $this->tokenValidation($token);
+        if ($decoded) {
             $tokenModel = model(UserToken::class);
             $token = $tokenModel->checkToken($token);
             if ($token) {
@@ -99,7 +108,7 @@ class Auth extends BaseController
                 'status' => 'error',
                 'message' => 'Invalid token'
             ]);
-        } catch (\Exception $e) {
+        } else {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Invalid token'
@@ -143,25 +152,17 @@ class Auth extends BaseController
     {
         $header = $this->request->getHeaderLine('Authorization');
         $token = str_replace('Bearer ', '', $header);
-        try {
-            $decoded = JWT::decode($token, new Key("muhammadsarib_super_secret_key_1234567890", 'HS256'));
-            $tokenModel = model(UserToken::class);
-            $token = $tokenModel->checkToken($token);
-            if ($token) {
-                $userEmail = $decoded->data->email;
-                $model = model(UsersModel::class);
-                $user = $model->getUser($userEmail);
-                return $this->response->setJSON([
-                    'status' => 'success',
-                    'message' => 'User retrieved successfully',
-                    'data' => $user
-                ]);
-            }
+        $decoded = $this->tokenValidation($token);
+        if ($decoded) {
+            $userEmail = $decoded->data->email;
+            $model = model(UsersModel::class);
+            $user = $model->getUser($userEmail);
             return $this->response->setJSON([
-                'status' => 'error',
-                'message' => 'Invalid token'
+                'status' => 'success',
+                'message' => 'User retrieved successfully',
+                'data' => $user
             ]);
-        } catch (\Exception $e) {
+        } else {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Invalid token'

@@ -13,6 +13,16 @@ use Firebase\JWT\Key;
 
 class Auctions extends BaseController
 {
+    public function tokenValidation(string $token): ?object
+    {
+        try {
+            $decoded = JWT::decode($token, new Key("muhammadsarib_super_secret_key_1234567890", 'HS256'));
+            return $decoded;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
     public function getAuctions()
     {
         $model = model(AuctionsModel::class);
@@ -35,30 +45,21 @@ class Auctions extends BaseController
     {
         $header = $this->request->getHeaderLine('Authorization');
         $token = str_replace('Bearer ', '', $header);
-        try {
-            $decoded = JWT::decode($token, new Key("muhammadsarib_super_secret_key_1234567890", 'HS256'));
-            $tokenModel = model(UserToken::class);
-            $token = $tokenModel->checkToken($token);
-            if ($token) {
-                $email = $decoded->data->email;
-                $model = model(FavoriteItemModel::class);
-                return $this->response->setJSON([
-                    'status' => 'success',
-                    'message' => 'Watchlist retrieved successfully',
-                    'data' => [
-                        'items' => $model->getAllFavorites($email)
-                    ]
-                ]);
-            }
+        $decoded = $this->tokenValidation($token);
+        if ($decoded) {
+            $email = $decoded->data->email;
+            $model = model(FavoriteItemModel::class);
             return $this->response->setJSON([
-                'status' => 'error',
-                'message' => 'Invalid token',
+                'status' => 'success',
+                'message' => 'Watchlist retrieved successfully',
+                'data' => [
+                    'items' => $model->getAllFavorites($email)
+                ]
             ]);
-        } catch (\Exception $e) {
+        } else {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Invalid token',
-                'token' => $e->getMessage()
             ]);
         }
     }
@@ -68,28 +69,19 @@ class Auctions extends BaseController
         $token = str_replace('Bearer ', '', $header);
         $data = $this->request->getJSON(true);
         $itemid = $data['itemid'] ?? null;
-        try {
-            $decoded = JWT::decode($token, new Key("muhammadsarib_super_secret_key_1234567890", 'HS256'));
-            $tokenModel = model(UserToken::class);
-            $token = $tokenModel->checkToken($token);
-            if ($token) {
-                $email = $decoded->data->email;
-                $model = model(FavoriteItemModel::class);
-                $model->setFavorite($email, $itemid);
-                return $this->response->setJSON([
-                    'status' => 'success',
-                    'message' => 'Item added to watchlist successfully'
-                ]);
-            }
+        $decoded = $this->tokenValidation($token);
+        if ($decoded) {
+            $email = $decoded->data->email;
+            $model = model(FavoriteItemModel::class);
+            $model->setFavorite($email, $itemid);
             return $this->response->setJSON([
-                'status' => 'error',
-                'message' => 'Invalid token',
+                'status' => 'success',
+                'message' => 'Item added to watchlist successfully'
             ]);
-        } catch (\Exception $e) {
+        } else {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Invalid token',
-                'token' => $e->getMessage()
             ]);
         }
     }
@@ -97,28 +89,19 @@ class Auctions extends BaseController
     {
         $header = $this->request->getHeaderLine('Authorization');
         $token = str_replace('Bearer ', '', $header);
-        try {
-            $decoded = JWT::decode($token, new Key("muhammadsarib_super_secret_key_1234567890", 'HS256'));
-            $tokenModel = model(UserToken::class);
-            $token = $tokenModel->checkToken($token);
-            if ($token) {
-                $email = $decoded->data->email;
-                $model = model(FavoriteItemModel::class);
-                $model->removeFavorite($email, $id);
-                return $this->response->setJSON([
-                    'status' => 'success',
-                    'message' => 'Item removed from watchlist successfully'
-                ]);
-            }
+        $decoded = $this->tokenValidation($token);
+        if ($decoded) {
+            $email = $decoded->data->email;
+            $model = model(FavoriteItemModel::class);
+            $model->removeFavorite($email, $id);
             return $this->response->setJSON([
-                'status' => 'error',
-                'message' => 'Invalid token',
+                'status' => 'success',
+                'message' => 'Item removed from watchlist successfully'
             ]);
-        } catch (\Exception $e) {
+        } else {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Invalid token',
-                'token' => $e->getMessage()
             ]);
         }
     }
@@ -137,32 +120,23 @@ class Auctions extends BaseController
     {
         $header = $this->request->getHeaderLine('Authorization');
         $token = str_replace('Bearer ', '', $header);
-        try {
-            $decoded = JWT::decode($token, new Key("muhammadsarib_super_secret_key_1234567890", 'HS256'));
-            $tokenModel = model(UserToken::class);
-            $token = $tokenModel->checkToken($token);
-            if ($token) {
-                $userEmail = $decoded->data->email;
-                $data = $this->request->getJSON(true);
-                $auctionId = $data['auctionid'] ?? null;
-                $itemId = $data['itemid'] ?? null;
-                $bidAmount = $data['amount'] ?? null;
-                $model = model(AuctionItemBidModel::class);
-                $model->addBid($auctionId, $itemId, $bidAmount, $userEmail);
-                return $this->response->setJSON([
-                    'status' => 'success',
-                    'message' => 'Bid added successfully'
-                ]);
-            }
+        $decoded = $this->tokenValidation($token);
+        if ($decoded) {
+            $userEmail = $decoded->data->email;
+            $data = $this->request->getJSON(true);
+            $auctionId = $data['auctionid'] ?? null;
+            $itemId = $data['itemid'] ?? null;
+            $bidAmount = $data['amount'] ?? null;
+            $model = model(AuctionItemBidModel::class);
+            $model->addBid($auctionId, $itemId, $bidAmount, $userEmail);
             return $this->response->setJSON([
-                'status' => 'error',
-                'message' => 'Invalid token',
+                'status' => 'success',
+                'message' => 'Bid added successfully'
             ]);
-        } catch (\Exception $e) {
+        } else {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Invalid token',
-                'token' => $e->getMessage()
             ]);
         }
     }
@@ -170,28 +144,19 @@ class Auctions extends BaseController
     {
         $header = $this->request->getHeaderLine('Authorization');
         $token = str_replace('Bearer ', '', $header);
-        try {
-            $decoded = JWT::decode($token, new Key("muhammadsarib_super_secret_key_1234567890", 'HS256'));
-            $tokenModel = model(UserToken::class);
-            $token = $tokenModel->checkToken($token);
-            if ($token) {
-                $userEmail = $decoded->data->email;
-                $model = model(AuctionItemBidModel::class);
-                return $this->response->setJSON([
-                    'status' => 'success',
-                    'message' => 'User bids retrieved successfully',
-                    'items' => $model->getUserBids($userEmail)
-                ]);
-            }
+        $decoded = $this->tokenValidation($token);
+        if ($decoded) {
+            $userEmail = $decoded->data->email;
+            $model = model(AuctionItemBidModel::class);
             return $this->response->setJSON([
-                'status' => 'error',
-                'message' => 'Invalid token',
+                'status' => 'success',
+                'message' => 'User bids retrieved successfully',
+                'items' => $model->getUserBids($userEmail)
             ]);
-        } catch (\Exception $e) {
+        } else {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Invalid token',
-                'token' => $e->getMessage()
             ]);
         }
     }
@@ -199,28 +164,19 @@ class Auctions extends BaseController
     {
         $header = $this->request->getHeaderLine('Authorization');
         $token = str_replace('Bearer ', '', $header);
-        try {
-            $decoded = JWT::decode($token, new Key("muhammadsarib_super_secret_key_1234567890", 'HS256'));
-            $tokenModel = model(UserToken::class);
-            $token = $tokenModel->checkToken($token);
-            if ($token) {
-                $userEmail = $decoded->data->email;
-                $model = model(InvoiceModel::class);
-                return $this->response->setJSON([
-                    'status' => 'success',
-                    'message' => 'User invoices retrieved successfully',
-                    'data' => $model->getInvoices($userEmail)
-                ]);
-            }
+        $decoded = $this->tokenValidation($token);
+        if ($decoded) {
+            $userEmail = $decoded->data->email;
+            $model = model(InvoiceModel::class);
             return $this->response->setJSON([
-                'status' => 'error',
-                'message' => 'Invalid token',
+                'status' => 'success',
+                'message' => 'User invoices retrieved successfully',
+                'data' => $model->getInvoices($userEmail)
             ]);
-        } catch (\Exception $e) {
+        } else {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Invalid token',
-                'token' => $e->getMessage()
             ]);
         }
     }
