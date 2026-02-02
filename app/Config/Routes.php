@@ -1,16 +1,12 @@
 <?php
 
 use CodeIgniter\Router\RouteCollection;
-use App\Controllers\News;
 
 /**
  * @var RouteCollection $routes
  */
 
-$routes->get('news', [News::class, 'index']);
-$routes->get('news/(:segment)', [News::class, 'show']);
 $routes->get('/', 'Home::index');
-$routes->get('/contact', 'Home::contact');
 
 $routes->get('/auth', 'Auth::index');
 $routes->post('/authenticate', 'Auth::authenticate');
